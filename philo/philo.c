@@ -100,7 +100,7 @@ void ft_eating(t_philos *philo)
     pthread_mutex_unlock(&(philo->data->lock));
     ft_sleep(philo->eat_time);
     pthread_mutex_lock(&(philo->data->lock));
-    philo->meals_eaten--;
+    philo->data->eat_rounds--;
     pthread_mutex_unlock(&(philo->data->lock));
 }
 
@@ -201,7 +201,7 @@ int init_threads(t_data *data)
         usleep(300);
     }
     if (philo_status(data) == 1)
-        return (1);
+        return (0);
     i = -1;
     while (++i < data->philo_num)
     {
@@ -234,7 +234,6 @@ int main(int ac, char **av)
     if (init_philosophers(&data) == 1)
         return (1);
     if (init_threads(&data) == 1)
-        return (0);
-    // daymn khaso yfreeyi dakchi
+        free_data(&data);
     return (0);
 }
