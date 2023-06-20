@@ -15,7 +15,7 @@ void ft_sleep(long long time)
 	start_point = gettime();
 	while ((gettime() - start_point) < time)
 	{
-		usleep(time / 10);
+		usleep(50);
 	}
 }
 

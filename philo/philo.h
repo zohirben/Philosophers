@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/29 17:01:44 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/16 15:30:00 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/20 05:03:41 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ typedef struct s_philos
     long long start_time;
     long long last_meal_time;
     int meals_eaten;
-    int finished;
-    int quit;
     pthread_mutex_t *r_fork;
     pthread_mutex_t *l_fork;
     
@@ -45,16 +43,14 @@ typedef struct s_data
     int time_to_sleep;
     int eat_rounds;
     int dead;
-    int philo_count;
-    pthread_mutex_t write_lock;
-    pthread_mutex_t dead_lock;
-    pthread_mutex_t meal_lock;
-    pthread_mutex_t tiz;
+    int infinity;
+    pthread_mutex_t lock;
     pthread_mutex_t *forks;
     t_philos *philos;
 }   t_data;
 
 void ft_sleep(long long time);
+void free_data(t_data *data);
 int	ft_atoi(const char *str);
 long long gettime(void);
 
