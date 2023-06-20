@@ -179,7 +179,6 @@ int philo_status(t_data *data)
         if (i == data->philo_num)
             i = 0;
     }
-    free_data(data);
     return (1);
 }
 
@@ -201,7 +200,7 @@ int init_threads(t_data *data)
         usleep(300);
     }
     if (philo_status(data) == 1)
-        return (0);
+        return (1);
     i = -1;
     while (++i < data->philo_num)
     {
@@ -209,7 +208,7 @@ int init_threads(t_data *data)
         if (pthread_join(data->philos[i].tphilo, NULL))
             return (1);
     }
-    return (0);
+    return (1);
 }
 
 void free_data(t_data *data)
