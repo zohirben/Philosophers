@@ -136,7 +136,6 @@ void *routine(void *philos)
         pthread_mutex_lock(&(philo->data->lock));
         if (philo->data->dead == 1)
         {
-            pthread_mutex_unlock(&(philo->data->lock));
             pthread_detach(philo->tphilo);
             return (NULL);
         }
@@ -172,16 +171,16 @@ int philo_status(t_data *data)
     {
         pthread_mutex_lock(&(data->lock));
         if (ft_isdying(&(data->philos[i])) == 1)
-            return (1);
+            break;
         if (data->eat_rounds <= 0 && data->infinity == 0)
-            return (1);
+            break;
         pthread_mutex_unlock(&(data->lock));
         i++;
         if (i == data->philo_num)
             i = 0;
     }
-    // lol ma3mro aywsel hna anyway
-    return (0);
+    free_data(data);
+    return (1);
 }
 
 int init_threads(t_data *data)
@@ -202,17 +201,21 @@ int init_threads(t_data *data)
         usleep(300);
     }
     if (philo_status(data) == 1)
+        return (1);
+    i = -1;
+    while (++i < data->philo_num)
     {
-        free_data(data);
-        return (0);
+
+        if (pthread_join(data->philos[i].tphilo, NULL))
+            return (1);
     }
-    return (1);
+    return (0);
 }
 
 void free_data(t_data *data)
 {
-    pthread_mutex_destroy(data->forks);
     pthread_mutex_destroy(&(data->lock));
+    pthread_mutex_destroy(data->forks);
     free(data->philos);
     free(data->forks);
 }
@@ -231,7 +234,7 @@ int main(int ac, char **av)
     if (init_philosophers(&data) == 1)
         return (1);
     if (init_threads(&data) == 1)
-        free_data(&data);
+        return (0);
     // daymn khaso yfreeyi dakchi
     return (0);
 }
