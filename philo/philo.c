@@ -32,7 +32,7 @@ int check_data(int ac, char **av, t_data *data)
     data->dead = 0;
     if (ac == 6)
     {
-        data->eat_rounds = ft_atoi(av[5]) * data->philo_num;
+        data->eat_rounds = ft_atoi(av[5]);
         data->infinity = 0;
         if (data->eat_rounds < 0)
             return (1);
@@ -76,6 +76,7 @@ int init_philosophers(t_data *data)
         philo->eat_time = data->time_to_eat;
         philo->sleep_time = data->time_to_sleep;
         philo->start_time = gettime();
+        philo->meals_eaten = 0;
         philo->last_meal_time = gettime();
         philo->l_fork = &(data->forks[i]);
         philo->r_fork = &(data->forks[(i + 1) % data->philo_num]);
@@ -83,44 +84,47 @@ int init_philosophers(t_data *data)
     return (0);
 }
 
-void ft_thinking(t_philos *philo)
+int ft_thinking(t_philos *philo)
 {
     pthread_mutex_lock(&(philo->data->lock));
     if (philo->data->dead != 1)
     {
         printf("%lli %i is thinking\n", (gettime() - philo->start_time), philo->id);
         pthread_mutex_unlock(&(philo->data->lock));
+        return (0);
     }
     else
     {
         pthread_mutex_unlock(&(philo->data->lock));
-        return;
+        return (1);
     }
 }
 
-void ft_eating(t_philos *philo)
+int ft_eating(t_philos *philo)
 {
     pthread_mutex_lock(&(philo->data->lock));
     if (philo->data->dead != 1)
     {
         printf("%lli %i is eating\n", gettime() - philo->start_time, philo->id);
         pthread_mutex_unlock(&(philo->data->lock));
-        pthread_mutex_lock(&(philo->data->meal_lock));
+
+        pthread_mutex_lock(&(philo->data->last_meal_lock));
         philo->last_meal_time = gettime();
-        pthread_mutex_unlock(&(philo->data->meal_lock));
+        pthread_mutex_unlock(&(philo->data->last_meal_lock));
         pthread_mutex_lock(&(philo->data->meal_lock));
-        philo->data->eat_rounds--;
+        philo->meals_eaten++;
         pthread_mutex_unlock(&(philo->data->meal_lock));
         ft_sleep(philo->eat_time);
+        return (0);
     }
     else
     {
         pthread_mutex_unlock(&(philo->data->lock));
-        return;
+        return (1);
     }
 }
 
-void ft_sleeping(t_philos *philo)
+int ft_sleeping(t_philos *philo)
 {
 
     pthread_mutex_lock(&(philo->data->lock));
@@ -129,15 +133,16 @@ void ft_sleeping(t_philos *philo)
         printf("%lli %i is sleeping\n", gettime() - philo->start_time, philo->id);
         pthread_mutex_unlock(&(philo->data->lock));
         ft_sleep(philo->sleep_time);
+        return (0);
     }
     else
     {
         pthread_mutex_unlock(&(philo->data->lock));
-        return;
+        return (1);
     }
 }
 
-void ft_forks(t_philos *philo)
+int ft_forks(t_philos *philo)
 {
     pthread_mutex_lock(&(philo->data->lock));
     if (philo->data->dead != 1)
@@ -147,15 +152,16 @@ void ft_forks(t_philos *philo)
         printf("%lli %i has taken a fork\n", gettime() - philo->start_time, philo->id);
         pthread_mutex_lock(philo->r_fork);
         printf("%lli %i has taken a fork\n", gettime() - philo->start_time, philo->id);
+        return (0);
     }
     else
     {
         pthread_mutex_unlock(&(philo->data->lock));
-        return;
+        return (1);
     }
 }
 
-void ft_dropf(t_philos *philo)
+int ft_dropf(t_philos *philo)
 {
     pthread_mutex_lock(&(philo->data->lock));
     if (philo->data->dead != 1)
@@ -163,11 +169,12 @@ void ft_dropf(t_philos *philo)
         pthread_mutex_unlock(&(philo->data->lock));
         pthread_mutex_unlock(philo->l_fork);
         pthread_mutex_unlock(philo->r_fork);
+        return (0);
     }
     else
     {
         pthread_mutex_unlock(&(philo->data->lock));
-        return;
+        return (1);
     }
 }
 
@@ -182,17 +189,21 @@ void *routine(void *philos)
         if (philo->data->dead == 1)
         {
             pthread_mutex_unlock(&(philo->data->lock));
-            pthread_detach(philo->tphilo);
             return (NULL);
         }
         else
         {
             pthread_mutex_unlock(&(philo->data->lock));
-            ft_thinking(philo);
-            ft_forks(philo);
-            ft_eating(philo);
-            ft_dropf(philo);
-            ft_sleeping(philo);
+            if (ft_thinking(philo) == 1)
+                return (NULL);
+            if (ft_forks(philo) == 1)
+                return (NULL);
+            if (ft_eating(philo) == 1)
+                return (NULL);
+            if (ft_dropf(philo) == 1)
+                return (NULL);
+            if (ft_sleeping(philo) == 1)
+                return (NULL);
         }
     }
     return (NULL);
@@ -202,18 +213,38 @@ int ft_isdying(t_philos *philo)
 {
     int time;
 
-    pthread_mutex_lock(&(philo->data->meal_lock));
+    pthread_mutex_lock(&(philo->data->last_meal_lock));
     time = gettime() - philo->last_meal_time;
-    pthread_mutex_unlock(&(philo->data->meal_lock));
+    pthread_mutex_unlock(&(philo->data->last_meal_lock));
     if (time >= philo->die_time)
     {
         pthread_mutex_lock(&(philo->data->lock));
         philo->data->dead = 1;
-        pthread_mutex_unlock(&(philo->data->lock));
         printf("%lli %i died\n", gettime() - philo->start_time, philo->id);
+        pthread_mutex_unlock(&(philo->data->lock));
         return (1);
     }
     pthread_mutex_unlock(&(philo->data->lock));
+    return (0);
+}
+
+int ft_food(t_data *data)
+{
+    int i;
+    int count;
+
+    pthread_mutex_lock(&data->meal_lock);
+    i = 0;
+    count = 0;
+    while (i < data->philo_num)
+    {
+        if (data->philos[i].meals_eaten >= data->eat_rounds)
+            count++;
+        i++;
+    }
+    pthread_mutex_unlock(&data->meal_lock) ;
+    if (count == data->philo_num)
+        return (1);
     return (0);
 }
 
@@ -224,13 +255,9 @@ int philo_status(t_data *data)
     {
         if (ft_isdying(&data->philos[i]) == 1)
             break;
-        pthread_mutex_lock(&data->meal_lock);
-        if (data->eat_rounds <= 0 && data->infinity == 0)
-        {
-            pthread_mutex_unlock(&data->meal_lock);
-            break;
-        }
-        pthread_mutex_unlock(&data->meal_lock);
+        if (data->infinity == 0 && data->eat_rounds != -1)
+            if (ft_food(data) == 1)
+                break;
         i++;
         if (i == data->philo_num - 1)
         {
@@ -249,6 +276,8 @@ int init_threads(t_data *data)
 
     if (pthread_mutex_init(&(data->lock), NULL) != 0)
         return (1);
+    if (pthread_mutex_init(&(data->last_meal_lock), NULL) != 0)
+        return (1);
     if (pthread_mutex_init(&(data->meal_lock), NULL) != 0)
     {
         free_data(data);
@@ -260,18 +289,14 @@ int init_threads(t_data *data)
     i = -1;
     while (++i < data->philo_num)
     {
-        pthread_create(&(data->philos[i].tphilo), NULL, routine, (void *)&data->philos[i]);
-        usleep(300);
+        if (pthread_create(&(data->philos[i].tphilo), NULL, routine, &data->philos[i]) != 0)
+            return (1);
     }
     if (philo_status(data) == 1)
         return (1);
-    i = -1;
-    while (++i < data->philo_num)
-    {
-        if (pthread_join(data->philos[i].tphilo, NULL))
-            return (1);
-    }
-    return (1);
+    i = 0;
+ 
+    return (0);
 }
 
 void free_data(t_data *data)
@@ -279,29 +304,30 @@ void free_data(t_data *data)
     int i = 0;
 
     while (i < data->philo_num)
-    {
         pthread_mutex_destroy(&data->forks[i++]);
-    }
     pthread_mutex_destroy(&data->lock);
     pthread_mutex_destroy(&data->meal_lock);
+    pthread_mutex_destroy(&data->last_meal_lock);
     free(data->forks);
     free(data->philos);
 }
 
 int main(int ac, char **av)
 {
-    t_data data;
+    t_data *data;
 
-    (void)data;
+    data = malloc(sizeof(data));
     if (arg_checker(ac, av) == 1)
         return (1);
-    if (check_data(ac, av, &data) == 1)
+    if (check_data(ac, av, data) == 1)
         return (1);
-    if (init_data(&data) == 1)
+    if (init_data(data) == 1)
         return (1);
-    if (init_philosophers(&data) == 1)
+    if (init_philosophers(data) == 1)
         return (1);
-    if (init_threads(&data) == 1)
-        free_data(&data);
+    if (init_threads(data) == 1)
+    {
+        free_data(data);
+    }
     return (0);
 }

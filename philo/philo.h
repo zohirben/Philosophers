@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/29 17:01:44 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/21 05:16:19 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/22 01:42:29 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ typedef struct s_data
     int infinity;
     pthread_mutex_t lock;
     pthread_mutex_t meal_lock;
+    pthread_mutex_t last_meal_lock;
     pthread_mutex_t *forks;
     t_philos *philos;
 }   t_data;
@@ -54,7 +55,7 @@ void ft_sleep(long long time);
 void free_data(t_data *data);
 int	ft_atoi(const char *str);
 long long gettime(void);
-void ft_forks(t_philos *philo);
-void ft_dropf(t_philos *philo);
+int ft_forks(t_philos *philo);
+int ft_dropf(t_philos *philo);
 int ft_isdying(t_philos *philo);
 #endif
