@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/29 17:01:44 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/22 01:42:29 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/23 14:00:07 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,9 +44,10 @@ typedef struct s_data
     int eat_rounds;
     int dead;
     int infinity;
-    pthread_mutex_t lock;
+    pthread_mutex_t print_lock;
     pthread_mutex_t meal_lock;
     pthread_mutex_t last_meal_lock;
+    pthread_mutex_t dead_lock;
     pthread_mutex_t *forks;
     t_philos *philos;
 }   t_data;
