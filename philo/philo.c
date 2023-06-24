@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/25 00:20:32 by zbenaiss          #+#    #+#             */
+/*   Updated: 2023/06/25 00:25:48 by zbenaiss         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
 int arg_checker(int ac, char **av)
@@ -23,23 +35,29 @@ int arg_checker(int ac, char **av)
     return (0);
 }
 
+int ft_onecase(t_philos *philo)
+{
+    if (philo->data->philo_num == 1)
+    {
+        printf("1 1 is thinking\n");
+        printf("1 1 has taken a fork\n");
+        ft_sleep(philo->die_time);
+        printf("%i 1 died\n", philo->die_time);
+        return (1);
+    }
+    return (0);
+}
+
 int check_data(int ac, char **av, t_data *data)
 {
-    if (ac < 5 || ac > 6)
-        return (1);
-
-    if (!av[1] || !av[2] || !av[3] || !av[4])
-        return (1);
-
     data->philo_num = ft_atoi(av[1]);
     data->time_to_die = ft_atoi(av[2]);
     data->time_to_eat = ft_atoi(av[3]);
     data->time_to_sleep = ft_atoi(av[4]);
     data->dead = 0;
-
     if (ac == 6)
     {
-        data->eat_rounds = ft_atoi(av[5]) + 1;
+        data->eat_rounds = ft_atoi(av[5]);
         data->infinity = 0;
         if (data->eat_rounds < 0)
             return (1);
@@ -49,16 +67,13 @@ int check_data(int ac, char **av, t_data *data)
         data->eat_rounds = -1;
         data->infinity = 1;
     }
-
     if (data->philo_num <= 0 || data->time_to_die <= 0 || data->time_to_eat <= 0 ||
         data->time_to_sleep <= 0 || data->philo_num > 200)
     {
         return (1);
     }
-
     return (0);
 }
-
 
 int init_data(t_data *data)
 {
@@ -94,6 +109,8 @@ int init_philosophers(t_data *data)
         philo->l_fork = &(data->forks[i]);
         philo->r_fork = &(data->forks[(i + 1) % data->philo_num]);
     }
+    if (ft_onecase(&data->philos[0]) == 1)
+        return (1);
     return (0);
 }
 
@@ -162,6 +179,7 @@ int ft_sleeping(t_philos *philo)
 
 int ft_forks(t_philos *philo)
 {
+    
     pthread_mutex_lock(&(philo->data->dead_lock));
     if (philo->data->dead != 1)
     {
@@ -225,8 +243,6 @@ int ft_isdying(t_philos *philo)
 {
     int time;
 
-    if (philo->data->philo_num == 1)
-        exit(0);
     pthread_mutex_lock(&(philo->data->last_meal_lock));
     time = gettime() - philo->last_meal_time;
     pthread_mutex_unlock(&(philo->data->last_meal_lock));
@@ -234,10 +250,10 @@ int ft_isdying(t_philos *philo)
     {
         pthread_mutex_lock(&(philo->data->dead_lock));
         philo->data->dead = 1;
-        pthread_mutex_unlock(&(philo->data->dead_lock));
+        // pthread_mutex_unlock(&(philo->data->dead_lock));
         pthread_mutex_lock(&(philo->data->print_lock));
         printf("%lli %i died\n", gettime() - philo->start_time, philo->id);
-        // pthread_mutex_unlock(&(philo->data->print_lock));
+        pthread_mutex_unlock(&(philo->data->print_lock));
         return (1);
     }
     return (0);
@@ -255,7 +271,7 @@ int ft_food(t_data *data)
         pthread_mutex_lock(&data->meal_lock);
         if (data->philos[i].meals_eaten >= data->eat_rounds)
             count++;
-        pthread_mutex_unlock(&data->meal_lock) ;
+        pthread_mutex_unlock(&data->meal_lock);
         i++;
     }
     if (count == data->philo_num)
@@ -263,7 +279,7 @@ int ft_food(t_data *data)
         pthread_mutex_lock(&data->dead_lock);
         // printf("\t\tbtata\t\t\n");
         data->dead = 1;
-        pthread_mutex_unlock(&data->dead_lock);
+        // pthread_mutex_unlock(&data->dead_lock);
         return (1);
     }
     return (0);
@@ -275,7 +291,7 @@ int philo_status(t_data *data)
     while (1)
     {
         if (ft_isdying(&data->philos[i]) == 1)
-            break ;
+            break;
         if (data->infinity == 0 && data->eat_rounds != -1)
         {
             if (ft_food(data) == 1)
@@ -314,8 +330,7 @@ int init_threads(t_data *data)
     i = -1;
     while (++i < data->philo_num)
     {
-        // printf("\t\there\n\n");
-        if  (data->philos[i].id % 2 == 0)
+        if (data->philos[i].id % 2 == 0)
             usleep(200);
         if (pthread_create(&(data->philos[i].tphilo), NULL, routine, &data->philos[i]) != 0)
         {
@@ -324,12 +339,12 @@ int init_threads(t_data *data)
     }
     if (philo_status(data) == 1)
         return (1);
-    i = 0;
-    while (i < data->philo_num)
-    {
-        pthread_join(data->philos[i].tphilo, NULL);
-        i++;
-    }
+    // i = 0;
+    // while (i < data->philo_num)
+    // {
+    //     pthread_join(data->philos[i].tphilo, NULL);
+    //     i++;
+    // }
     return (0);
 }
 

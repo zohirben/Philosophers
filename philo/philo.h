@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/29 17:01:44 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/24 16:57:09 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/24 23:49:53 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,4 +59,5 @@ long long gettime(void);
 int ft_forks(t_philos *philo);
 int ft_dropf(t_philos *philo);
 int ft_isdying(t_philos *philo);
+int ft_dead(t_philos *philo);
 #endif
