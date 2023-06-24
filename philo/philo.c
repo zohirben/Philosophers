@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/25 00:20:32 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/25 00:37:43 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/25 00:45:35 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,14 +337,13 @@ int init_threads(t_data *data)
             return (1);
         }
     }
-    if (philo_status(data) == 1)
-        return (1);
-    // i = 0;
-    // while (i < data->philo_num)
-    // {
-    //     pthread_join(data->philos[i].tphilo, NULL);
-    //     i++;
-    // }
+    philo_status(data);
+    i = 0;
+    while (i < data->philo_num)
+    {
+        pthread_detach(data->philos[i].tphilo);
+        i++;
+    }
     return (0);
 }
 
