@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/25 00:20:32 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/25 00:25:48 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/25 00:37:43 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,7 +253,7 @@ int ft_isdying(t_philos *philo)
         // pthread_mutex_unlock(&(philo->data->dead_lock));
         pthread_mutex_lock(&(philo->data->print_lock));
         printf("%lli %i died\n", gettime() - philo->start_time, philo->id);
-        pthread_mutex_unlock(&(philo->data->print_lock));
+        // pthread_mutex_unlock(&(philo->data->print_lock));
         return (1);
     }
     return (0);
