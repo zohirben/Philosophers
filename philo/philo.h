@@ -6,7 +6,7 @@
 /*   By: zbenaiss <zbenaiss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/29 17:01:44 by zbenaiss          #+#    #+#             */
-/*   Updated: 2023/06/23 14:00:07 by zbenaiss         ###   ########.fr       */
+/*   Updated: 2023/06/24 16:57:09 by zbenaiss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,8 @@ typedef struct s_philos
 typedef struct s_data
 {
     int philo_num;
-    int time_to_die;
     int time_to_eat;
+    int time_to_die;
     int time_to_sleep;
     int eat_rounds;
     int dead;

@@ -25,15 +25,21 @@ int arg_checker(int ac, char **av)
 
 int check_data(int ac, char **av, t_data *data)
 {
+    if (ac < 5 || ac > 6)
+        return (1);
+
+    if (!av[1] || !av[2] || !av[3] || !av[4])
+        return (1);
+
     data->philo_num = ft_atoi(av[1]);
     data->time_to_die = ft_atoi(av[2]);
-    data->time_to_eat = atoi(av[3]);
+    data->time_to_eat = ft_atoi(av[3]);
     data->time_to_sleep = ft_atoi(av[4]);
-    // printf("%p\n", &data->time_to_eat);
     data->dead = 0;
+
     if (ac == 6)
     {
-        data->eat_rounds = ft_atoi(av[5]);
+        data->eat_rounds = ft_atoi(av[5]) + 1;
         data->infinity = 0;
         if (data->eat_rounds < 0)
             return (1);
@@ -43,10 +49,16 @@ int check_data(int ac, char **av, t_data *data)
         data->eat_rounds = -1;
         data->infinity = 1;
     }
-    if (data->philo_num < 0 || data->time_to_die < 0 || data->time_to_eat < 0 || data->time_to_sleep < 0 || data->philo_num > 200)
+
+    if (data->philo_num <= 0 || data->time_to_die <= 0 || data->time_to_eat <= 0 ||
+        data->time_to_sleep <= 0 || data->philo_num > 200)
+    {
         return (1);
+    }
+
     return (0);
 }
+
 
 int init_data(t_data *data)
 {
@@ -150,7 +162,6 @@ int ft_sleeping(t_philos *philo)
 
 int ft_forks(t_philos *philo)
 {
-        usleep(10);
     pthread_mutex_lock(&(philo->data->dead_lock));
     if (philo->data->dead != 1)
     {
@@ -214,6 +225,8 @@ int ft_isdying(t_philos *philo)
 {
     int time;
 
+    if (philo->data->philo_num == 1)
+        exit(0);
     pthread_mutex_lock(&(philo->data->last_meal_lock));
     time = gettime() - philo->last_meal_time;
     pthread_mutex_unlock(&(philo->data->last_meal_lock));
@@ -248,6 +261,7 @@ int ft_food(t_data *data)
     if (count == data->philo_num)
     {
         pthread_mutex_lock(&data->dead_lock);
+        // printf("\t\tbtata\t\t\n");
         data->dead = 1;
         pthread_mutex_unlock(&data->dead_lock);
         return (1);
@@ -301,20 +315,22 @@ int init_threads(t_data *data)
     while (++i < data->philo_num)
     {
         // printf("\t\there\n\n");
+        if  (data->philos[i].id % 2 == 0)
+            usleep(200);
         if (pthread_create(&(data->philos[i].tphilo), NULL, routine, &data->philos[i]) != 0)
+        {
             return (1);
+        }
     }
     if (philo_status(data) == 1)
         return (1);
-    // philo_status(data);
     i = 0;
     while (i < data->philo_num)
     {
         pthread_join(data->philos[i].tphilo, NULL);
         i++;
-        // printf("\t\tldldldld\t\t\n");
     }
-    return (1);
+    return (0);
 }
 
 void free_data(t_data *data)
@@ -329,25 +345,41 @@ void free_data(t_data *data)
     pthread_mutex_destroy(&data->last_meal_lock);
     free(data->forks);
     free(data->philos);
+    free(data);
 }
 
 int main(int ac, char **av)
 {
     t_data *data;
 
-    data = malloc(sizeof(data));
+    data = malloc(sizeof(*data));
+    if (data == NULL)
+        return (1);
     if (arg_checker(ac, av) == 1)
+    {
+        free(data);
         return (1);
+    }
     if (check_data(ac, av, data) == 1)
+    {
+        free(data);
         return (1);
+    }
     if (init_data(data) == 1)
+    {
+        free(data);
         return (1);
+    }
     if (init_philosophers(data) == 1)
+    {
+        free_data(data);
         return (1);
+    }
     if (init_threads(data) == 1)
     {
         free_data(data);
+        return (1);
     }
-    free(data);
+    free_data(data);
     return (0);
 }
