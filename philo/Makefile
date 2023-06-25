@@ -4,7 +4,10 @@ CC = CC
 
 CFLAGS = -Wall -Wextra -Werror -g -fsanitize=thread
 SRCS = philo.c \
-utils.c
+utils.c \
+actions.c \
+helpers.c \
+helpers2.c \
 
 OBJS = ${SRCS:.c=.o}
 
